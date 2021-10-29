@@ -1,0 +1,16 @@
+{
+    "properties": [
+        {
+            "name": "spring.cloud.gcp.dlp.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Auto-configure Google Cloud DLP components.",
+            "defaultValue": true
+        },
+        {
+            "name": "spring.cloud.gcp.core.enabled",
+            "type": "java.lang.Boolean",
+            "description": "Auto-configure Google Cloud Core components.",
+            "defaultValue": true
+        }
+    ]
+}

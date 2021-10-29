@@ -1,0 +1,18 @@
+= Spring Cloud GCP Changelog
+
+https://spring.io/projects/spring-cloud-gcp[Spring Cloud GCP] is a set of integrations between Spring Framework and Google Cloud Platform. It makes it much easier for Spring framework users to run their applications on Google Cloud Platform.
+
+This document provides a high-level overview of the changes introduced in Spring Cloud GCP by release.
+For a detailed view of what has changed, refer to the https://github.com/GoogleCloudPlatform/spring-cloud-gcp/commits/main[commit history] on GitHub.
+
+== 2.0.5.BUILD-SNAPSHOT
+
+== 2.0.4
+
+=== General
+
+* Updated `gcp-libraries-bom.version` to 20.9.0.
+
+=== DLP
+
+* Initial version to support DLP API.

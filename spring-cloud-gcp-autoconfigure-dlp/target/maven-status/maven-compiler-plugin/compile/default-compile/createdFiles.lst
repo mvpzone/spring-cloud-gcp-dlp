@@ -1,0 +1,4 @@
+META-INF/spring-autoconfigure-metadata.properties
+META-INF/spring-configuration-metadata.json
+com/google/cloud/spring/autoconfigure/dlp/CloudDLPProperties.class
+com/google/cloud/spring/autoconfigure/dlp/CloudDLPAutoConfiguration.class
