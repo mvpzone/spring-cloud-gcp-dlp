@@ -26,6 +26,8 @@ import java.io.InputStream;
 
 import com.google.cloud.dlp.v2.DlpServiceClient;
 import com.google.cloud.spring.core.DefaultGcpProjectIdProvider;
+import com.google.privacy.dlp.v2.ListInfoTypesRequest;
+import com.google.privacy.dlp.v2.ListInfoTypesResponse;
 import com.google.privacy.dlp.v2.RedactImageRequest;
 import com.google.privacy.dlp.v2.RedactImageResponse;
 
@@ -54,6 +56,7 @@ public class CloudDLPTemplateTests {
     // Resource representing a fake image blob
     private static final Resource FAKE_IMAGE = new ByteArrayResource("fake_image".getBytes());
     private static final RedactImageResponse DEFAULT_API_RESPONSE = RedactImageResponse.newBuilder().build();
+    private static final ListInfoTypesResponse DEFAULT_INFOTYPE_RESPONSE = ListInfoTypesResponse.getDefaultInstance();
 
     private DlpServiceClient dlpClient;
     private CloudDLPTemplate dlpTemplate;
@@ -71,6 +74,15 @@ public class CloudDLPTemplateTests {
         this.dlpTemplate.redactImage(FAKE_IMAGE);
 
         verify(this.dlpClient, times(1)).redactImage(any(RedactImageRequest.class));
+    }
+
+    @Test
+    public void testGetSupportedInfoType() throws IOException {
+        when(this.dlpClient.listInfoTypes(any(ListInfoTypesRequest.class))).thenReturn(DEFAULT_INFOTYPE_RESPONSE);
+
+        this.dlpTemplate.getSupportedInfoTypes();
+
+        verify(this.dlpClient, times(1)).listInfoTypes(any(ListInfoTypesRequest.class));
     }
 
     @Test

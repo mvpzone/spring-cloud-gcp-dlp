@@ -91,8 +91,13 @@ public class CloudDLPAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public CloudDLPTemplate cloudDLPTemplate(DlpServiceClient dlpClient) {
-		return new CloudDLPTemplate(cloudDLPProperties.getProjectIdProvider(), cloudDLPProperties.getLocation(),
-				dlpClient);
+	public CloudDLPTemplate cloudDLPTemplate(final DlpServiceClient dlpClient) {
+		final CloudDLPTemplate template = new CloudDLPTemplate(cloudDLPProperties.getProjectIdProvider(),
+				cloudDLPProperties.getLocation(), dlpClient);
+		template.setMaxfindings(cloudDLPProperties.getMaxFindings());
+		template.setIncludeFindings(cloudDLPProperties.isIncludeFindings());
+		template.setIncludeQuote(cloudDLPProperties.isIncludeQuote());
+		template.setMinLikelihood(cloudDLPProperties.getMinLikelihood());
+		return template;
 	}
 }

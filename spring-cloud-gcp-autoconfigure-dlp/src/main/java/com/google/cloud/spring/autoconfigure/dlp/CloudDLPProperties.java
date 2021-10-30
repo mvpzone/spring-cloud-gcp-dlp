@@ -21,6 +21,7 @@ import com.google.cloud.spring.core.CredentialsSupplier;
 import com.google.cloud.spring.core.DefaultGcpProjectIdProvider;
 import com.google.cloud.spring.core.GcpProjectIdProvider;
 import com.google.cloud.spring.core.GcpScope;
+import com.google.privacy.dlp.v2.Likelihood;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
@@ -40,12 +41,52 @@ public class CloudDLPProperties implements CredentialsSupplier {
 	private final GcpProjectIdProvider projectIdProvider = new DefaultGcpProjectIdProvider();
 	private String location = "global";
 	private int executorThreadsCount = 1;
+	private int maxFindings = 0;
+	private boolean includeQuote = true;
+	private Likelihood minLikelihood = Likelihood.POSSIBLE;
+
+	public Likelihood getMinLikelihood() {
+		return minLikelihood;
+	}
+
+	public void setMinLikelihood(final Likelihood minLikelihood) {
+		this.minLikelihood = minLikelihood;
+	}
+
+	public int getMaxFindings() {
+		return maxFindings;
+	}
+
+	public void setMaxFindings(final int maxFindings) {
+		if (maxFindings < 0) {
+			throw new IllegalArgumentException("maxFindings must be positive");
+		}
+		this.maxFindings = maxFindings;
+	}
+
+	public boolean isIncludeQuote() {
+		return includeQuote;
+	}
+
+	public void setIncludeQuote(final boolean includeQuote) {
+		this.includeQuote = includeQuote;
+	}
+
+	public boolean isIncludeFindings() {
+		return includeFindings;
+	}
+
+	public void setIncludeFindings(final boolean includeFindings) {
+		this.includeFindings = includeFindings;
+	}
+
+	private boolean includeFindings = true;
 
 	public Credentials getCredentials() {
 		return this.credentials;
 	}
 
-	public GcpProjectIdProvider getProjectIdProvider(){
+	public GcpProjectIdProvider getProjectIdProvider() {
 		return this.projectIdProvider;
 	}
 
@@ -64,5 +105,4 @@ public class CloudDLPProperties implements CredentialsSupplier {
 	public void setExecutorThreadsCount(int executorThreadsCount) {
 		this.executorThreadsCount = executorThreadsCount;
 	}
-
 }
