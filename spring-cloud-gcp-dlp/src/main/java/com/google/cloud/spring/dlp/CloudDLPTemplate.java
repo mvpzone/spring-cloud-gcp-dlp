@@ -135,11 +135,11 @@ public class CloudDLPTemplate {
                 .setParent(LocationName.of(projectProvider.getProjectId(), this.location).toString())
                 .setByteItem(byteItem).setIncludeFindings(isIncludeFindings());
 
+        final InspectConfig.Builder inspectConfig = InspectConfig.newBuilder().setIncludeQuote(isIncludeQuote());
         try {
             final List<InfoType> infoTypeList = toInfoTypes(infoTypes);
             if (!infoTypeList.isEmpty()) {
-                final InspectConfig inspectConfig = InspectConfig.newBuilder().addAllInfoTypes(infoTypeList).build();
-                request.setInspectConfig(inspectConfig);
+                inspectConfig.addAllInfoTypes(infoTypeList).build();
 
                 // Prepare redaction configs.
                 final List<ImageRedactionConfig> imageRedactionConfigs = infoTypeList.stream()
@@ -149,6 +149,7 @@ public class CloudDLPTemplate {
                 // Do not specify the type of info to redact using default info types.
                 request.addAllImageRedactionConfigs(imageRedactionConfigs);
             }
+            request.setInspectConfig(inspectConfig);
 
             // Use the client to send the API request.
             return dlpClient.redactImage(request.build());
