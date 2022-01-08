@@ -31,10 +31,10 @@ import com.google.privacy.dlp.v2.ListInfoTypesResponse;
 import com.google.privacy.dlp.v2.RedactImageRequest;
 import com.google.privacy.dlp.v2.RedactImageResponse;
 
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.function.ThrowingRunnable;
 import org.mockito.Mockito;
 import org.springframework.core.io.AbstractResource;
 import org.springframework.core.io.ByteArrayResource;
@@ -50,8 +50,8 @@ import org.springframework.core.io.Resource;
 public class CloudDLPTemplateTests {
 
     /** Used to test exception messages and types. **/
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    // @Rule
+    // public ExpectedException expectedException = ExpectedException.none();
 
     // Resource representing a fake image blob
     private static final Resource FAKE_IMAGE = new ByteArrayResource("fake_image".getBytes());
@@ -87,10 +87,12 @@ public class CloudDLPTemplateTests {
 
     @Test
     public void testIOError() {
-        this.expectedException.expect(CloudDLPException.class);
-        this.expectedException.expectMessage("Failed to read image bytes from provided resource.");
-
-        this.dlpTemplate.redactImage(new BadResource());
+        Assert.assertThrows("Failed to read image bytes from provided resource.", CloudDLPException.class,
+                new ThrowingRunnable() {
+                    public void run() throws Throwable {
+                        dlpTemplate.redactImage(new BadResource());
+                    }
+                });
     }
 
     private static final class BadResource extends AbstractResource {

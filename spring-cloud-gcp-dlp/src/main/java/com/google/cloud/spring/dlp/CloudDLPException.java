@@ -19,7 +19,7 @@ package com.google.cloud.spring.dlp;
 import org.springframework.core.NestedRuntimeException;
 
 /**
- * Describes error conditions that can occur when interfacing with Cloud Vision
+ * Describes error conditions that can occur when interfacing with Cloud DLP
  * APIs.
  *
  * @author Vinesh

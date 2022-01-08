@@ -51,9 +51,9 @@ import org.springframework.util.Assert;
  * Spring Template offering convenience methods for interacting with the Cloud
  * DLP APIs.
  *
- * @author Daniel Zou
+ * @author vinesh
  *
- * @since 1.1
+ * @since 2.0.4
  */
 public class CloudDLPTemplate {
     private final GcpProjectIdProvider projectProvider;
@@ -123,12 +123,17 @@ public class CloudDLPTemplate {
      * @param imgResource the image one wishes to analyze. The Cloud Vision APIs
      *                    support image formats described here:
      *                    https://cloud.google.com/vision/docs/supported-files
+     * @param bytesType   The content type to be inspected @see BytesType
      * @return the redact response.
      * @throws CloudDLPException if the image could not be read or if a malformed
      *                           response is received from the Cloud Vision APIs
      */
-    public RedactImageResponse redactImage(final Resource imgResource, final List<String> infoTypes) {
-        final ByteContentItem byteItem = readImageBytes(imgResource);
+    public RedactImageResponse redactImage(final Resource imgResource, final BytesType bytesType,
+            final List<String> infoTypes) {
+        Assert.notNull(imgResource, "Resource not provided");
+        Assert.notNull(bytesType, "BytesType not provided");
+
+        final ByteContentItem byteItem = createByteContent(imgResource, bytesType);
 
         // Do not specify the type of info to redact using default info types.
         final RedactImageRequest.Builder request = RedactImageRequest.newBuilder()
@@ -158,6 +163,10 @@ public class CloudDLPTemplate {
         }
     }
 
+    public RedactImageResponse redactImage(final Resource imgResource, final List<String> infoTypes) {
+        return redactImage(imgResource, BytesType.IMAGE, infoTypes);
+    }
+
     public RedactImageResponse redactImage(final Resource imgResource, final String... infoTypes) {
         return this.redactImage(imgResource, Arrays.asList(infoTypes));
     }
@@ -172,12 +181,17 @@ public class CloudDLPTemplate {
      * @param imgResource the image one wishes to analyze. The Cloud Vision APIs
      *                    support image formats described here:
      *                    https://cloud.google.com/vision/docs/supported-files
+     * @param bytesType   The content type to be inspected @see BytesType
      * @return the inspect response.
      * @throws CloudDLPException if the image could not be read or if a malformed
      *                           response is received from the Cloud Vision APIs
      */
-    public InspectContentResponse inspectImage(final Resource imgResource, final List<String> infoTypes) {
-        final ByteContentItem byteItem = readImageBytes(imgResource);
+    public InspectContentResponse inspectImage(final Resource imgResource, final BytesType bytesType,
+            final List<String> infoTypes) {
+        Assert.notNull(imgResource, "Resource not provided");
+        Assert.notNull(bytesType, "BytesType not provided");
+
+        final ByteContentItem byteItem = createByteContent(imgResource, bytesType);
         try {
             // The maximum number of findings to report (0 = server maximum)
             final InspectConfig.FindingLimits limits = InspectConfig.FindingLimits.newBuilder()
@@ -199,11 +213,13 @@ public class CloudDLPTemplate {
 
             // Use the client to send the API request.
             return dlpClient.inspectContent(request);
-        } catch (
-
-        final Exception e) {
-            throw new CloudDLPException("Failed to receive valid response from DLP APIs; empty response received.", e);
+        } catch (final Exception e) {
+            throw new CloudDLPException("Failed to receive valid response from DLP APIs; no response received.", e);
         }
+    }
+
+    public InspectContentResponse inspectImage(final Resource imgResource, final List<String> infoTypes) {
+        return inspectImage(imgResource, BytesType.IMAGE, infoTypes);
     }
 
     public InspectContentResponse inspectImage(final Resource imgResource, final String... infoTypes) {
@@ -251,13 +267,17 @@ public class CloudDLPTemplate {
         return this.getSupportedInfoTypes("supported_by=RISK_ANALYSIS", Locale.US);
     }
 
-    private ByteContentItem readImageBytes(final Resource imgResource) {
+    private ByteString readContentBytes(final Resource resource) {
         try {
-            return ByteContentItem.newBuilder().setType(BytesType.IMAGE)
-                    .setData(ByteString.readFrom(imgResource.getInputStream())).build();
+            return ByteString.readFrom(resource.getInputStream());
         } catch (final IOException ex) {
-            throw new CloudDLPException("Failed to read image bytes from provided resource.", ex);
+            throw new CloudDLPException("Failed to read content bytes from provided resource.", ex);
         }
+    }
+
+    private ByteContentItem createByteContent(final Resource resource, final BytesType bytesType) {
+        return ByteContentItem.newBuilder().setType(bytesType)
+                .setData(readContentBytes(resource)).build();
     }
 
     private List<InfoType> toInfoTypes(final List<String> infoTypes) {
