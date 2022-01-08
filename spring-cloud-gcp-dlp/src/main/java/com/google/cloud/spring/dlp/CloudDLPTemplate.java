@@ -142,7 +142,7 @@ public class CloudDLPTemplate {
     public RedactImageResponse redactImage(final Resource imgResource, final BytesType bytesType,
             final List<String> infoTypes) {
         Assert.notNull(imgResource, "Resource not provided");
-        Assert.notNull(bytesType, "BytesType not provided");
+        Assert.notNull(bytesType, "BytesType not supplied");
         Assert.isTrue(util.isImageType(bytesType), "Invalid bytesType not supported image.");
 
         final ByteContentItem byteItem = util.createByteContent(imgResource, bytesType);
@@ -190,54 +190,93 @@ public class CloudDLPTemplate {
     /**
      * Inspect an image and redact based on defaul info types.
      * 
-     * @param imgResource the image one wishes to analyze. The Cloud Vision APIs
-     *                    support image formats described here:
-     *                    https://cloud.google.com/vision/docs/supported-files
-     * @param bytesType   The content type to be inspected @see BytesType
+     * @param text      the text one wishes to analyze.
+     * @param bytesType The content type to be inspected @see BytesType
      * @return the inspect response.
      * @throws CloudDLPException if the image could not be read or if a malformed
-     *                           response is received from the Cloud Vision APIs
+     *                           response is received from the Cloud DLP APIs
      */
-    public InspectContentResponse inspectImage(final Resource imgResource, final BytesType bytesType,
-            final String inspectionTemplate,
-            final List<String> infoTypes) {
-        Assert.notNull(imgResource, "Resource not provided");
+    public InspectContentResponse inspectContent(final String text, final BytesType bytesType,
+            final String inspectionTemplate, final List<String> infoTypes) {
+        Assert.notNull(text, "text not provided");
         Assert.notNull(bytesType, "BytesType not provided");
-        Assert.isTrue(util.isImageType(bytesType), "Invalid bytesType not supported image.");
+        Assert.isTrue(BytesType.BYTES_TYPE_UNSPECIFIED != bytesType, "Invalid bytesType not supported type.");
 
-        final ByteContentItem byteItem = util.createByteContent(imgResource, bytesType);
+        final ByteContentItem byteItem = util.createByteContent(text, bytesType);
         try {
-            // The maximum number of findings to report (0 = server maximum)
-            final InspectConfig.FindingLimits limits = InspectConfig.FindingLimits.newBuilder()
-                    .setMaxFindingsPerItem(getMaxfindings()).setMaxFindingsPerRequest(getMaxfindings()).build();
-
-            final InspectConfig.Builder inspectionConfig = InspectConfig.newBuilder().setIncludeQuote(isIncludeQuote())
-                    .setLimits(limits).setMinLikelihood(getMinLikelihood());
-
-            final List<InfoType> infoTypeList = toInfoTypes(infoTypes);
-            if (!infoTypeList.isEmpty()) {
-                inspectionConfig.addAllInfoTypes(infoTypeList);
-            }
-
-            // Do not specify the type of info to redact using default info types.
-            final InspectContentRequest.Builder request = InspectContentRequest.newBuilder()
-                    .setParent(LocationName.of(projectProvider.getProjectId(), this.location).toString())
-                    .setItem(ContentItem.newBuilder().setByteItem(byteItem).build()).setInspectConfig(inspectionConfig);
-
-            if (StringUtils.hasText(getInspectionTemplate())) {
-                request.setInspectTemplateName(getInspectionTemplate());
-            }
-
-            // override if passed in
-            if (StringUtils.hasText(inspectionTemplate)) {
-                request.setInspectTemplateName(inspectionTemplate);
-            }
-
-            // Use the client to send the API request.
-            return dlpClient.inspectContent(request.build());
+            return doInpsect(byteItem, inspectionTemplate, infoTypes);
         } catch (final Exception e) {
             throw new CloudDLPException("Failed to receive valid response from DLP APIs; no response received.", e);
         }
+    }
+
+    /**
+     * Inspect an image and redact based on defaul info types.
+     * 
+     * @param resource  the resource one wishes to analyze. The Cloud DLP APIs
+     *                  support file formats described here:
+     *                  https://cloud.google.com/dlp/docs/supported-file-types
+     * @param bytesType The content type to be inspected @see BytesType
+     * @return the inspect response.
+     * @throws CloudDLPException if the image could not be read or if a malformed
+     *                           response is received from the Cloud DLP APIs
+     */
+    public InspectContentResponse inspectContent(final Resource resource, final BytesType bytesType,
+            final String inspectionTemplate, final List<String> infoTypes) {
+        Assert.notNull(resource, "Resource not provided");
+        Assert.notNull(bytesType, "BytesType not provided");
+        Assert.isTrue(BytesType.BYTES_TYPE_UNSPECIFIED != bytesType, "Invalid bytesType not supported type.");
+
+        final ByteContentItem byteItem = util.createByteContent(resource, bytesType);
+        try {
+            return doInpsect(byteItem, inspectionTemplate, infoTypes);
+        } catch (final Exception e) {
+            throw new CloudDLPException("Failed to receive valid response from DLP APIs; no response received.", e);
+        }
+    }
+
+    private InspectContentResponse doInpsect(final ByteContentItem byteItem, final String inspectionTemplate,
+            final List<String> infoTypes) {
+        // The maximum number of findings to report (0 = server maximum)
+        final InspectConfig.FindingLimits limits = InspectConfig.FindingLimits.newBuilder()
+                .setMaxFindingsPerItem(getMaxfindings()).setMaxFindingsPerRequest(getMaxfindings()).build();
+
+        final InspectConfig.Builder inspectionConfig = InspectConfig.newBuilder().setIncludeQuote(isIncludeQuote())
+                .setLimits(limits).setMinLikelihood(getMinLikelihood());
+
+        final List<InfoType> infoTypeList = toInfoTypes(infoTypes);
+        if (!infoTypeList.isEmpty()) {
+            inspectionConfig.addAllInfoTypes(infoTypeList);
+        }
+
+        // Do not specify the type of info to redact using default info types.
+        final InspectContentRequest.Builder request = InspectContentRequest.newBuilder()
+                .setParent(LocationName.of(projectProvider.getProjectId(), this.location).toString())
+                .setItem(ContentItem.newBuilder().setByteItem(byteItem).build()).setInspectConfig(inspectionConfig);
+
+        if (StringUtils.hasText(getInspectionTemplate())) {
+            request.setInspectTemplateName(getInspectionTemplate());
+        }
+
+        // override if passed in
+        if (StringUtils.hasText(inspectionTemplate)) {
+            request.setInspectTemplateName(inspectionTemplate);
+        }
+
+        // Use the client to send the API request.
+        return dlpClient.inspectContent(request.build());
+    }
+
+    public InspectContentResponse inspectImage(final Resource imgResource, final BytesType bytesType,
+            final String inspectionTemplate, final List<String> infoTypes) {
+        Assert.isTrue(util.isImageType(bytesType), "Invalid bytesType not supported image.");
+        return inspectContent(imgResource, bytesType, inspectionTemplate, infoTypes);
+    }
+
+    public InspectContentResponse inspectText(final String text, final BytesType bytesType,
+            final String inspectionTemplate, final List<String> infoTypes) {
+        Assert.isTrue(util.isTextType(bytesType), "Invalid bytesType not supported text type.");
+        return inspectContent(text, bytesType, inspectionTemplate, infoTypes);
     }
 
     public InspectContentResponse inspectImage(final Resource imgResource, final String inspectionTemplate,
@@ -245,16 +284,33 @@ public class CloudDLPTemplate {
         return inspectImage(imgResource, BytesType.IMAGE, inspectionTemplate, infoTypes);
     }
 
+    public InspectContentResponse inspectText(final String text, final String inspectionTemplate,
+            final List<String> infoTypes) {
+        return inspectText(text, BytesType.TEXT_UTF8, inspectionTemplate, infoTypes);
+    }
+
     public InspectContentResponse inspectImage(final Resource imgResource, final String... infoTypes) {
         return this.inspectImage(imgResource, null, Arrays.asList(infoTypes));
+    }
+
+    public InspectContentResponse inspectText(final String text, final String... infoTypes) {
+        return this.inspectText(text, null, Arrays.asList(infoTypes));
     }
 
     public InspectContentResponse inspectImage(final Resource imgResource, final String inspectionTemplate) {
         return this.inspectImage(imgResource, inspectionTemplate, Collections.emptyList());
     }
 
+    public InspectContentResponse inspectText(final String text, final String inspectionTemplate) {
+        return this.inspectText(text, inspectionTemplate, Collections.emptyList());
+    }
+
     public InspectContentResponse inspectImage(final Resource imgResource) {
         return this.inspectImage(imgResource, null, Collections.emptyList());
+    }
+
+    public InspectContentResponse inspectText(final String text) {
+        return this.inspectText(text, null, Collections.emptyList());
     }
 
     /**
@@ -326,9 +382,24 @@ public class CloudDLPTemplate {
                     || type == BytesType.IMAGE_BMP || type == BytesType.IMAGE_SVG;
         }
 
+        private boolean isTextType(final BytesType type) {
+            if (type == null) {
+                return false;
+            }
+
+            return type == BytesType.TEXT_UTF8 || type == BytesType.CSV || type == BytesType.TSV;
+        }
+
         private ByteContentItem createByteContent(final Resource resource, final BytesType bytesType) {
             return ByteContentItem.newBuilder().setType(bytesType)
                     .setData(readContentBytes(resource)).build();
+        }
+
+        private ByteContentItem createByteContent(final String text, final BytesType bytesType) {
+            return ByteContentItem.newBuilder()
+                    .setType(BytesType.TEXT_UTF8)
+                    .setData(ByteString.copyFromUtf8(text))
+                    .build();
         }
     }
 }

@@ -26,6 +26,8 @@ import java.io.InputStream;
 
 import com.google.cloud.dlp.v2.DlpServiceClient;
 import com.google.cloud.spring.core.DefaultGcpProjectIdProvider;
+import com.google.privacy.dlp.v2.InspectContentRequest;
+import com.google.privacy.dlp.v2.InspectContentResponse;
 import com.google.privacy.dlp.v2.ListInfoTypesRequest;
 import com.google.privacy.dlp.v2.ListInfoTypesResponse;
 import com.google.privacy.dlp.v2.RedactImageRequest;
@@ -49,13 +51,11 @@ import org.springframework.core.io.Resource;
  */
 public class CloudDLPTemplateTests {
 
-    /** Used to test exception messages and types. **/
-    // @Rule
-    // public ExpectedException expectedException = ExpectedException.none();
-
     // Resource representing a fake image blob
     private static final Resource FAKE_IMAGE = new ByteArrayResource("fake_image".getBytes());
-    private static final RedactImageResponse DEFAULT_API_RESPONSE = RedactImageResponse.newBuilder().build();
+    private static final InspectContentResponse DEFAULT_INSPECT_API_RESPONSE = InspectContentResponse.newBuilder()
+            .build();
+    private static final RedactImageResponse DEFAULT_REDACT_API_RESPONSE = RedactImageResponse.newBuilder().build();
     private static final ListInfoTypesResponse DEFAULT_INFOTYPE_RESPONSE = ListInfoTypesResponse.getDefaultInstance();
 
     private DlpServiceClient dlpClient;
@@ -68,8 +68,17 @@ public class CloudDLPTemplateTests {
     }
 
     @Test
+    public void testInspectImage() throws IOException {
+        when(this.dlpClient.inspectContent(any(InspectContentRequest.class))).thenReturn(DEFAULT_INSPECT_API_RESPONSE);
+
+        this.dlpTemplate.inspectImage(FAKE_IMAGE);
+
+        verify(this.dlpClient, times(1)).inspectContent(any(InspectContentRequest.class));
+    }
+
+    @Test
     public void testRedactImage() throws IOException {
-        when(this.dlpClient.redactImage(any(RedactImageRequest.class))).thenReturn(DEFAULT_API_RESPONSE);
+        when(this.dlpClient.redactImage(any(RedactImageRequest.class))).thenReturn(DEFAULT_REDACT_API_RESPONSE);
 
         this.dlpTemplate.redactImage(FAKE_IMAGE);
 
