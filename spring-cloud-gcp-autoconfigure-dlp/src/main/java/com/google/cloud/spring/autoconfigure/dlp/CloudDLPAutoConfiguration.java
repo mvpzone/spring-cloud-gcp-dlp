@@ -82,7 +82,7 @@ public class CloudDLPAutoConfiguration {
 		DlpServiceSettings clientSettings = DlpServiceSettings.newBuilder()
 				.setCredentialsProvider(this.credentialsProvider)
 				.setHeaderProvider(new UserAgentHeaderProvider(CloudDLPAutoConfiguration.class))
-				.setExecutorProvider(FixedExecutorProvider
+				.setBackgroundExecutorProvider(FixedExecutorProvider
 						.create(Executors.newScheduledThreadPool(this.cloudDLPProperties.getExecutorThreadsCount())))
 				.build();
 
@@ -98,6 +98,7 @@ public class CloudDLPAutoConfiguration {
 		template.setIncludeFindings(cloudDLPProperties.isIncludeFindings());
 		template.setIncludeQuote(cloudDLPProperties.isIncludeQuote());
 		template.setMinLikelihood(cloudDLPProperties.getMinLikelihood());
+		template.setInspectionTemplate(cloudDLPProperties.getInspectionTemplate());
 		return template;
 	}
 }

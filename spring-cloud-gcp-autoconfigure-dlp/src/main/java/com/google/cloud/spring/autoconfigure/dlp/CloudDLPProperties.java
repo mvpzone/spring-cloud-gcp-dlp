@@ -44,6 +44,7 @@ public class CloudDLPProperties implements CredentialsSupplier {
 	private int maxFindings = 0;
 	private boolean includeQuote = true;
 	private Likelihood minLikelihood = Likelihood.POSSIBLE;
+	private String inspectionTemplate = null;
 
 	public Likelihood getMinLikelihood() {
 		return minLikelihood;
@@ -104,5 +105,13 @@ public class CloudDLPProperties implements CredentialsSupplier {
 
 	public void setExecutorThreadsCount(int executorThreadsCount) {
 		this.executorThreadsCount = executorThreadsCount;
+	}
+
+	public String getInspectionTemplate() {
+		return this.inspectionTemplate;
+	}
+
+	public void setInspectionTemplate(final String inspectionTemplate) {
+		this.inspectionTemplate = inspectionTemplate;
 	}
 }
