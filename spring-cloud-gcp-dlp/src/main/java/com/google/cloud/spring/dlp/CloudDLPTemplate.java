@@ -64,7 +64,7 @@ public class CloudDLPTemplate {
     private boolean includeQuote = true;
     private boolean includeFindings = true;
     private String inspectionTemplate = null;
-    private final ContentUtil util = new ContentUtil();
+    private final ByteContentUtil util = new ByteContentUtil();
     /*
      * The minimum likelihood required before returning a match: See:
      * https://cloud.google.com/dlp/docs/likelihood
@@ -267,6 +267,11 @@ public class CloudDLPTemplate {
         return dlpClient.inspectContent(request.build());
     }
 
+    public InspectContentResponse inspectContent(final Resource imgResource, final BytesType bytesType) {
+        Assert.isTrue(util.isImageType(bytesType), "Invalid bytesType not supported image.");
+        return inspectContent(imgResource, bytesType, null, Collections.emptyList());
+    }
+
     public InspectContentResponse inspectImage(final Resource imgResource, final BytesType bytesType,
             final String inspectionTemplate, final List<String> infoTypes) {
         Assert.isTrue(util.isImageType(bytesType), "Invalid bytesType not supported image.");
@@ -364,7 +369,7 @@ public class CloudDLPTemplate {
         return infoTypeList;
     }
 
-    private static final class ContentUtil {
+    private static final class ByteContentUtil {
         private ByteString readContentBytes(final Resource resource) {
             try {
                 return ByteString.readFrom(resource.getInputStream());
@@ -396,8 +401,9 @@ public class CloudDLPTemplate {
         }
 
         private ByteContentItem createByteContent(final String text, final BytesType bytesType) {
+            Assert.isTrue(isTextType(bytesType), "Invalid bytesType not supported text type.");
             return ByteContentItem.newBuilder()
-                    .setType(BytesType.TEXT_UTF8)
+                    .setType(bytesType)
                     .setData(ByteString.copyFromUtf8(text))
                     .build();
         }
