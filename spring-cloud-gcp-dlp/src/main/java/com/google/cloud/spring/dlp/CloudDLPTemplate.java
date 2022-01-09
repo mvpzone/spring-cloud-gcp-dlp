@@ -268,7 +268,7 @@ public class CloudDLPTemplate {
     }
 
     public InspectContentResponse inspectContent(final Resource imgResource, final BytesType bytesType) {
-        Assert.isTrue(util.isImageType(bytesType), "Invalid bytesType not supported image.");
+        Assert.isTrue(util.isDocType(bytesType), "Invalid bytesType not supported doc.");
         return inspectContent(imgResource, bytesType, null, Collections.emptyList());
     }
 
@@ -393,6 +393,14 @@ public class CloudDLPTemplate {
             }
 
             return type == BytesType.TEXT_UTF8 || type == BytesType.CSV || type == BytesType.TSV;
+        }
+
+        private boolean isDocType(final BytesType type) {
+            if (type == null) {
+                return false;
+            }
+
+            return type == BytesType.PDF || type == BytesType.WORD_DOCUMENT;
         }
 
         private ByteContentItem createByteContent(final Resource resource, final BytesType bytesType) {
