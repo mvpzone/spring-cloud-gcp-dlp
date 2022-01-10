@@ -267,9 +267,9 @@ public class CloudDLPTemplate {
         return dlpClient.inspectContent(request.build());
     }
 
-    public InspectContentResponse inspectContent(final Resource imgResource, final BytesType bytesType) {
+    public InspectContentResponse inspectContent(final Resource resource, final BytesType bytesType) {
         Assert.isTrue(util.isDocType(bytesType), "Invalid bytesType not supported doc.");
-        return inspectContent(imgResource, bytesType, null, Collections.emptyList());
+        return inspectContent(resource, bytesType, null, Collections.emptyList());
     }
 
     public InspectContentResponse inspectImage(final Resource imgResource, final BytesType bytesType,
