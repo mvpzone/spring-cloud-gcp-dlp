@@ -143,7 +143,7 @@
 		</repository>
 		<repository>
 			<id>cirrus-defaut-maven</id>
-			<url>artifactregistry://us-west1-maven.pkg.dev/cirrus-default/maven</url>
+			<url>artifactregistry://us-west1-maven.pkg.dev/vpm-home/maven</url>
 			<releases>
 			  <enabled>true</enabled>
 			</releases>
@@ -198,11 +198,11 @@
 	<distributionManagement>
 		<snapshotRepository>
 			<id>artifact-registry</id>
-			<url>artifactregistry://us-west1-maven.pkg.dev/cirrus-default/maven</url>
+			<url>artifactregistry://us-west1-maven.pkg.dev/vpm-home/maven</url>
 		  </snapshotRepository>
 		  <repository>
 			<id>artifact-registry</id>
-			<url>artifactregistry://us-west1-maven.pkg.dev/cirrus-default/maven</url>
+			<url>artifactregistry://us-west1-maven.pkg.dev/vpm-home/maven</url>
 		  </repository>
 		<!-- 
 		<repository>
